@@ -1,0 +1,52 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: backend-user-deployment
+  namespace: application
+  labels:
+    app: backend-user
+spec:
+  replicas: 1
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 0%
+  selector:
+    matchLabels:
+      app: application
+  template:
+    metadata:
+      labels:
+        app: application
+    spec:
+      containers:
+      - name: application
+        imagePullPolicy: Always
+        image: stephanzbti/basic-api:00001
+        env:
+        - name: HOST_BINDING
+          value: "0.0.0.0"
+        ports:
+        - containerPort: 8080
+          name: http
+        livenessProbe:
+          httpGet:
+            path: /__healthcheck__
+            port: http
+          initialDelaySeconds: 45
+          periodSeconds: 15
+        readinessProbe:
+          httpGet:
+            path: /__healthcheck__
+            port: http
+          initialDelaySeconds: 15
+          periodSeconds: 15
+          successThreshold: 3
+        resources:
+          requests:
+            memory: "128Mi"
+            cpu: "64m"
+          limits:
+            memory: "128Mi"
+            cpu: "64m"
